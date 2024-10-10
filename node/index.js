@@ -1,22 +1,12 @@
 const express = require('express');
-const db = require('./db');
+const auau = require('./db');
 const app = express();
 app.use(express.json());
 const port = 3000;
 
-
-app.get('/', (req, res) => {
-  res.send("Bem-vindo! Links para movimentação:\n" +
-           "--get-- /visu - para visualizar todos os veículos;\n" +
-           "--get-- /visu/:id - para visualizar veículo específico;\n" +
-           "--post-- /add - para adicionar um veículo;\n" +
-           "--delete-- /re/:id - para remover um veículo pelo ID;\n" +
-           "--put-- /upt/:id - para atualizar um veículo pelo ID;\n" +
-           "--put-- /upt/:id/:campo - para atualizar um campo específico de um veículo pelo ID;\n");
-});
-
-app.get('/visu', (req, res) => {
-  db.query(
+//visualizar tabela
+app.get('/visualizar', (req, res) => {
+  auau.query(
     `SELECT * FROM veiculos`,
     function (err, results, fields) {
       if (err) {
@@ -28,10 +18,12 @@ app.get('/visu', (req, res) => {
   );
 });
 
-app.get('/visu/:id', (req, res) => {
+//Visualizar por id
+app.get('/visualizar/:id', (req, res) => {
 const { id } = req.params;
-  db.query(
-    `SELECT ${id} FROM veiculos`,
+  auau.query(
+    `SELECT * FROM veiculos WHERE id = ?`,
+    [id],
     function (err, results, fields) {
       if (err) {
         console.error('Erro na consulta:', err);
@@ -43,11 +35,12 @@ const { id } = req.params;
   );
 });
 
+//adicionar
 app.post('/add', (req, res) => {
-  const {marca, modelo, ano, prop, cor} = req.body;
-  db.query(
-    `INSERT INTO Veiculos (marca, modelo, ano, prop, cor) VALUES (?, ?, ?, ?, ?)`,
-    [marca, modelo, Number(ano), prop, cor],
+  const {marca, modelo, ano, cor, proprietario} = req.body;
+  auau.query(
+    `INSERT INTO veiculos (marca, modelo, ano, cor, proprietario) VALUES (?, ?, ?, ?, ?)`,
+    [marca, modelo, Number(ano), cor, proprietario],
     function (err, results, fields){
       if (err){
         console.error('erro na inserção', err)
@@ -57,15 +50,16 @@ app.post('/add', (req, res) => {
       console.log(fields)
     }
   )
-  res.send(`Carro recebido: ${marca}, ${modelo}, ${ano}, ${prop}, ${cor}`);
+  res.send(`Carro recebido: ${marca}, ${modelo}, ${ano}, ${cor}, ${proprietario}`);
 });
 
-app.put('/upt/:id', (req, res) => {
+//atualizar por id
+app.put('/atualizar/:id', (req, res) => {
    const { id } = req.params;
-   const {marca, modelo, ano, prop, cor} = req.body;
-    db.query(
-      `UPDATE veiculos set marca = ?, modelo = ?, ano = ?, prop = ?, cor = ? WHERE id = ?`,
-      [marca, modelo, Number(ano), prop, cor],
+   const {marca, modelo, ano, cor, proprietario} = req.body;
+    auau.query(
+      `UPDATE veiculos set marca = ?, modelo = ?, ano = ?, cor = ?, proprietario = ? WHERE id = ?`,
+      [marca, modelo, Number(ano), cor, proprietario, id],
       function (err, results, fields){
         if (err){
           console.error('erro na inserção', err)
@@ -75,15 +69,16 @@ app.put('/upt/:id', (req, res) => {
         console.log(fields)
       }
     );
-    res.send(`Carro atualizado: ${marca}, ${modelo}, ${ano}, ${prop}, ${cor}`);
+    res.send(`Carro atualizado: ${marca}, ${modelo}, ${ano}, ${cor}, ${proprietario}`);
   })
 
- app.delete('/re/:id', (req, res) => {
+  //deletar por id
+ app.delete('/deletar/:id', (req, res) => {
   const { id } = req.params;
-  const {marca, modelo, ano, prop, cor} = req.body;
-    db.query(
+  const {marca, modelo, ano, cor, proprietario} = req.body;
+    auau.query(
       `DELETE FROM veiculos WHERE id = ?`,
-      [Number(id), marca, modelo, Number(ano), prop, cor],
+      [Number(id), marca, modelo, Number(ano), cor, proprietario],
       function (err, results, fields){
         if (err){
           console.error('erro na inserção', err)
